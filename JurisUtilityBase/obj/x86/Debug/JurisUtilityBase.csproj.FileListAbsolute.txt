@@ -85,3 +85,20 @@ C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris .Net Utility Base\
 C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris .Net Utility Base\JurisUtilityBase\obj\x86\Debug\JPS - Copy Practice Class Code to MBF07.application
 C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris .Net Utility Base\JurisUtilityBase\obj\x86\Debug\JPS - Copy Practice Class Code to MBF07.exe
 C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris .Net Utility Base\JurisUtilityBase\obj\x86\Debug\JPS - Copy Practice Class Code to MBF07.pdb
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.csproj.ResolveComReference.cache
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.csprojResolveAssemblyReference.cache
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.PrinterDialog.resources
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.ReportDisplay.resources
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.UtilityBaseMain.resources
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.Properties.Resources.resources
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.SplashScreen.resources
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JurisUtilityBase.csproj.GenerateResource.Cache
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\bin\x86\Debug\JPS - Remove Transaction Batch Folders.exe.config
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\bin\x86\Debug\JPS - Remove Transaction Batch Folders.exe.manifest
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\bin\x86\Debug\JPS - Remove Transaction Batch Folders.application
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\bin\x86\Debug\JPS - Remove Transaction Batch Folders.exe
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\bin\x86\Debug\JPS - Remove Transaction Batch Folders.pdb
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JPS - Remove Transaction Batch Folders.exe.manifest
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JPS - Remove Transaction Batch Folders.application
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JPS - Remove Transaction Batch Folders.exe
+C:\Users\haddocdx\Documents\Visual Studio 2012\Projects\Juris Transaction Batch Purge\JurisUtilityBase\obj\x86\Debug\JPS - Remove Transaction Batch Folders.pdb

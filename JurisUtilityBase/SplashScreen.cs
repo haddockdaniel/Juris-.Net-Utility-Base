@@ -31,7 +31,7 @@ namespace JurisUtilityBase
         {
             this.labelVersion.Text = @"Version " + Application.ProductVersion;
             this.labelCopyright.Text = @"Copyright © 1996-" + DateTime.Now.Year;
-            this.labelAppName.Text = Application.ProductName;
+            this.labelAppName.Text = "JPS - Batch Folder Removal";
             this.labelCompany.Text = Application.CompanyName;
             this.Refresh();
         }

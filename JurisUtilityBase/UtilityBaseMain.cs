@@ -31,9 +31,13 @@ namespace JurisUtilityBase
 
         public string JBillsDbName { get; set; }
 
-        public int FldClient { get; set; }
+        public string userInit = "";
 
-        public int FldMatter { get; set; }
+        public string allUsers = "";
+
+        List<string> entryNumbers = new List<string>();
+
+        private int numberOfUsers = 0;
 
         #endregion
 
@@ -88,6 +92,37 @@ namespace JurisUtilityBase
                 ///GetFieldLengths();
             }
 
+            numberOfUsers = 0;
+            string TkprIndex;
+            comboBoxUser.ClearItems();
+            string SQLTkpr = "select empinitials + case when len(empinitials)=1 then '     ' when len(empinitials)=2 then '     ' when len(empinitials)=3 then '   ' else '  ' end +  empname as employee from employee order by empinitials";
+            DataSet myRSTkpr = _jurisUtility.RecordsetFromSQL(SQLTkpr);
+
+            if (myRSTkpr.Tables[0].Rows.Count == 0)
+                comboBoxUser.SelectedIndex = 0;
+            else
+            {
+                comboBoxUser.Items.Add("***   All Users");
+                foreach (DataTable table in myRSTkpr.Tables)
+                {
+                    foreach (DataRow dr in table.Rows)
+                    {
+                        numberOfUsers++;
+                        allUsers = allUsers + dr["employee"].ToString().Split(' ')[0] + ",";
+                        TkprIndex = dr["employee"].ToString();
+                        comboBoxUser.Items.Add(TkprIndex);
+                    }
+                }
+                allUsers = allUsers.TrimEnd(',');
+
+            }
+
+            DateTime dt = DateTime.Now;
+            int currentYear = dt.Year;
+            for (int a = currentYear; a > 1899; a--)
+            {
+                comboBoxYear.Items.Add(a.ToString());
+            }
         }
 
 
@@ -101,13 +136,233 @@ namespace JurisUtilityBase
             // Enter your SQL code here
             // To run a T-SQL statement with no results, int RecordsAffected = _jurisUtility.ExecuteNonQueryCommand(0, SQL);
             // To get an ADODB.Recordset, ADODB.Recordset myRS = _jurisUtility.RecordsetFromSQL(SQL);
-            string SQL = "update matter set MatBillingField07 = MatPracticeClass ";
 
-            _jurisUtility.ExecuteNonQueryCommand(0, SQL);
-            UpdateStatus("All MBF07 fields updated.", 1, 1);
+            foreach (Control control in groupBox1.Controls)
+            {
+                CheckBox textBox = control as CheckBox;
 
-            MessageBox.Show("The process is complete", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.None);
+                if (textBox.Checked)
+                    entryNumbers.Add(textBox.Name.Replace("checkBox", ""));
+            }
+
+
+
+            if (radioButtonPriorToDate.Checked)
+            {
+                if (comboBoxMonth.SelectedIndex == -1 || comboBoxYear.SelectedIndex == -1)
+                    MessageBox.Show("Please select an accounting period in the date boxes", "Selection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                {
+                    processRange();
+                    cleanUp();
+                    purgeAsk();
+                    MessageBox.Show("The process is complete", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.None);
+                }
+            }
+            else if (radioButtonPrdOnly.Checked)
+            {
+                if (comboBoxMonth.SelectedIndex == -1 || comboBoxYear.SelectedIndex == -1)
+                    MessageBox.Show("Please select an accounting period in the date boxes", "Selection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                {
+                    processDate();
+                    cleanUp();
+                    purgeAsk();
+                    MessageBox.Show("The process is complete", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.None);
+                }
+            }
+            else if (radioButtonAllForUser.Checked)
+            {
+
+                processUser();
+                cleanUp();
+                purgeAsk();
+                MessageBox.Show("The process is complete", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.None);
+            }
+            else
+                MessageBox.Show("Please select one of the Purge Folders Options", "Selection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            System.Environment.Exit(1);
         }
+
+        private void purgeAsk()
+        {
+            DialogResult dr = MessageBox.Show("Process Complete! Would you like to purge the log tables as well?", "Additional Purge Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+                processLogTables();
+        }
+
+
+
+        private void processRange()
+        {
+            int count = 1;
+            foreach (string entry in entryNumbers)
+            {
+
+                //get docids for the folders associated with the user
+                string SQL = "select dtdocid from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dttitle in (" + userInit.Trim() + ")";
+                DataSet ds = _jurisUtility.RecordsetFromSQL(SQL);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    foreach (DataRow dr in ds.Tables[0].Rows) //2319 smgr
+                    {
+                        //get the docids of the records asociated with the folder
+                        string modifiedMonth = "";
+                        if (comboBoxMonth.Text.ToString().Length == 1)
+                            modifiedMonth = "0" + comboBoxMonth.Text.ToString();
+                        SQL = "select dtdocid, dttitle from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtparentid = " + dr[0].ToString();
+                        DataSet dm = _jurisUtility.RecordsetFromSQL(SQL); //2470 2008-2
+                        if (dm.Tables[0].Rows.Count > 0)
+                        {
+                            string removeIDS = "";
+                            foreach (DataRow row in dm.Tables[0].Rows)
+                            {
+                                string[] items = row[1].ToString().Split('-');
+                                DateTime fromDB = Convert.ToDateTime(items[1] + "/01/" + items[0]);
+                                DateTime fromSelection = Convert.ToDateTime(comboBoxMonth.Text.ToString() + "/01/" + comboBoxYear.Text.ToString());
+                                int result = DateTime.Compare(fromDB, fromSelection);
+                                if (result < 0)
+                                    removeIDS = removeIDS + row[0].ToString() + ",";
+                               // SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtdocid in (" + removeIDS + ")";
+                                //_jurisUtility.ExecuteNonQueryCommand(0, SQL);
+
+                            }
+                            removeIDS = removeIDS.TrimEnd(',');
+                            if (!string.IsNullOrEmpty(removeIDS))
+                            {
+                                SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'R' and dtparentid in (" + removeIDS + ")";
+                                _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+                                SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtdocid in (" + removeIDS + ")";
+                                _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+                            }
+
+
+                        }
+
+                    }
+
+
+                }
+                UpdateStatus("Updating type: " + entry, count, entryNumbers.Count);
+                count++;
+            }
+
+
+        }
+
+        private void processUser()
+        {
+            int count = 1;
+            foreach (string entry in entryNumbers)
+            {
+                //get docids for the folders associated with the user
+                string SQL = "select dtdocid from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dttitle in (" + userInit.Trim() + ")";
+                DataSet ds = _jurisUtility.RecordsetFromSQL(SQL);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    foreach (DataRow dr in ds.Tables[0].Rows)
+                    {
+                        //get the docids of the folders asociated with the user folder
+                        SQL = "select dtdocid from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtparentid = " + dr[0].ToString();
+                        DataSet dm = _jurisUtility.RecordsetFromSQL(SQL);
+                        if (dm.Tables[0].Rows.Count > 0)
+                        {
+                            //remove the records associated with the folders associated with the user folder
+                            foreach (DataRow row in dm.Tables[0].Rows)
+                            {
+                                SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'R' and dtparentid = " + row[0].ToString();
+                                _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+                            }
+                        }
+                        SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtparentid = " + dr[0].ToString();
+                        _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+                    }
+                    
+                    
+                }
+                UpdateStatus("Updating type: " + entry, count, entryNumbers.Count);
+                count++;
+            }
+
+        }
+
+
+        private void cleanUp()
+        {
+            userInit = "";
+            entryNumbers.Clear();
+            foreach (Control control in groupBox1.Controls)
+            {
+                CheckBox textBox = control as CheckBox;
+
+                if (textBox.Checked)
+                    textBox.Checked = false;
+            }
+            numberOfUsers = 0;
+
+        }
+
+
+        private void processDate()
+        {
+            int count = 0;
+            foreach (string entry in entryNumbers)
+            {
+
+                //get docids for the folders associated with the user
+                string SQL = "select dtdocid from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dttitle in (" + userInit.Trim() + ")";
+                DataSet ds = _jurisUtility.RecordsetFromSQL(SQL);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    foreach (DataRow dr in ds.Tables[0].Rows) //2319 smgr
+                    {
+                        //get the docids of the records asociated with the folder
+                        string modifiedMonth = "";
+                        if (comboBoxMonth.Text.ToString().Length == 1)
+                            modifiedMonth = "0" + comboBoxMonth.Text.ToString();
+                        SQL = "select dtdocid from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtparentid = " + dr[0].ToString() + " and (dttitle = '" + comboBoxYear.Text.ToString() + "-" + comboBoxMonth.Text.ToString() + "' or dttitle = '" + comboBoxYear.Text.ToString() + "-" + modifiedMonth + "')";
+                        DataSet dm = _jurisUtility.RecordsetFromSQL(SQL); //2470 2008-2
+                        if (dm.Tables[0].Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dm.Tables[0].Rows)
+                            {
+                                SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'R' and dtparentid = " + row[0].ToString();
+                                _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+                                SQL = "delete from DocumentTree where dtdocclass = " + entry + "  and DTDocType = 'F' and dtdocid = " + row[0].ToString();
+                                _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+                            }
+
+                        }
+
+                    }
+
+                }
+                UpdateStatus("Updating type: " + entry, count, entryNumbers.Count);
+                count++;
+            }
+
+        }
+
+
+        private void processLogTables()
+        {
+            String SQL = "SELECT TABLE_NAME " +
+                        "FROM INFORMATION_SCHEMA.TABLES " +
+                        "WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='" + JurisDbName + "' " +
+                        "and (TABLE_NAME like '%_log' and TABLE_NAME not in " +
+                        "('ARBill_Log', 'ARFTaskAlloc_Log', 'ARExpAlloc_Log', 'PracticeClass_Log', 'CliOrigAtty_Log', 'MatOrigAtty_Log') " +
+                        "and TABLE_NAME not like 'PreBill%')";
+            DataSet dm = _jurisUtility.RecordsetFromSQL(SQL);
+            foreach (DataRow table in dm.Tables[0].Rows)
+            {
+                SQL = "Truncate table " + table[0];
+                _jurisUtility.ExecuteNonQueryCommand(0, SQL);
+            }
+        }
+
+
+
         private bool VerifyFirmName()
         {
             //    Dim SQL     As String
@@ -292,6 +547,24 @@ namespace JurisUtilityBase
 
             return reportSQL;
         }
+
+
+
+        private void comboBoxUser_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxUser.Text.StartsWith("***"))
+                userInit = "'" + allUsers.Replace(",", "','") + "'";
+            else
+            {
+                userInit = comboBoxUser.Text;
+                userInit = "'" + userInit.Split(' ')[0] + "'";
+                numberOfUsers = 1;
+            }
+        }
+
+
+
+
 
 
     }
